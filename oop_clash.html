@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="css/clash_styles.css">
+  <script src="js/jquery.js"></script>
+  <script src="js/game_data.js"></script>
+  <script src="js/visuals.js"></script>
+</head>
+<body>
+  <p id="loading">Loading...</p>
+  <h3>Top Board</h3>
+  <div id="top_board" class="board"></div>
+  <h3>Bot Board</h3>
+  <div id="bot_board" class="board"></div>
+
+<script type="text/javascript">
+
+  var Game_State = {
+    p1: {
+      moves   : 0,
+      reserve : 10,
+      board   : {1:0, 2:0, 3:0, 4:0, 5:0, 6:0},
+      //charging: {1:false, 2:false, 3:false, 4:0, 5:0, 6:0}
+    },
+
+    p2: {
+      moves   : 0,
+      reserve : 10,
+      board   : {1:0, 2:0, 3:0, 4:0, 5:0, 6:0},
+    },
+
+  }
+  var g = Game_State
+
+  function board_to_arr(board_obj){
+    board_string = []
+    for (space in board_obj) {
+      board_string.push(String("#"+space +","+ board_obj[space]))
+    }
+    return board_string
+  }
+  function board_to_p(board_obj, player){
+    board_string = []
+    for (space in board_obj) {
+      board_string += String('<p class='+player+'_column_'+space+'>"'+space +"-"+ board_obj[space]+'"</p>')
+    }
+    return board_string
+  }
+
+  // Think of constructors for either play or units next
+  //function Player(name) {
+  //  this.name = name;
+  //  this.starting_units = 3
+  //  this.board   = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
+  //}
+
+</script>
+
+<script type="text/javascript">
+// Basic check functions
+  function get_random_col(){
+  // returns random number from 1-4
+    var random_col = Math.floor((Math.random()*c.grid_columns)+1);
+    return random_col
+  };
+  function check_open_col(player,column){
+    if(g[player].board[column] < c.grid_rows){
+      return true
+    } else { return false }
+  }
+  function check_not_full(player){
+    for (var i = 0; i <= c.grid_columns; i++) {
+      if (check_open_col(player,i)){
+        console.log("Spaces available at: " +i);
+        return true
+      } else {
+        //console.log("Column " +i+ "is full")
+      }
+    }
+    console.log("No spaces available")
+    return false
+  }
+  function check_charge(player){
+    for (var i = 1; i <= c.grid_columns; i++) {
+      if (g[player].board[i]%6 == 0){
+        console.log("Double charge");
+      } else if (g[player].board[i]%3 == 0){
+        console.log("Single charge");
+      } else (console.log("No charge")) 
+    };
+  }
+</script>
+
+<script type="text/javascript">
+  // Finding functions
+
+  function find_open_col(player){
+    if (check_not_full(player)) {
+      var rand_column = String(get_random_col());
+      if (g[player].board[rand_column] < c.grid_rows) {
+        console.log(rand_column + ": is open")
+        return rand_column;
+      } else {
+        console.log(rand_column + ": is maxed...checking again")
+        var next = find_open_col(player);
+            if(next) return next;
+      }        
+    } else { return false }
+  }
+
+  function find_open_box(player){
+    if (!/[p][\d]/.test(player)) {console.log("Error, not in player format")}
+    var open_column = find_open_col(player);
+    var open_row = g[player].board[open_column]
+    console.log(open_column + "-" +open_row)
+  }
+</script>
+
+<script type="text/javascript">
+  // Filling functions
+
+
+  function fill_a_space(player){
+    var open_column = find_open_col(player);
+    var next_row    = g[player].board[open_column] + 1;
+    g[player].board[open_column] = next_row;
+    console.log("Filled space for " +player+ ": " 
+      + open_column + "-" + g[player].board[open_column] )
+  }
+
+
+  function fill_all(){
+    g.p1.board[1]=6;
+    g.p1.board[2]=6;
+    g.p1.board[3]=6;
+    g.p1.board[4]=6;
+    g.p1.board[5]=6;
+    g.p1.board[6]=6;
+    g.p1.board[7]=6;
+    g.p1.board[8]=6;
+    g.p1.board[1]=6;
+    g.p1.board[2]=6;
+    g.p1.board[3]=6;
+    g.p1.board[4]=6;
+    g.p1.board[5]=6;
+    g.p1.board[6]=6;
+    g.p1.board[7]=6;
+    g.p1.board[8]=6;
+  }
+
+</script>
+
+
+
+<script type="text/javascript">
+  function arr_to_string(arr){
+    var string = "";
+    for (var i = 0; i < arr.length; i++) {
+      string += arr[i]
+    };
+    return string
+  }
+  function update_game_state(){
+    $('#top_board').html(board_to_p(g.p1.board, 'p1'))
+    $('#bot_board').html(board_to_p(g.p2.board, 'p2'))
+  }
+</script>
+
+<script type="text/javascript">
+  // Start Game
+
+  function init_deploy(){
+    for (var i = c.start_units; i > 0; i--) {
+      fill_a_space('p1')
+      fill_a_space('p2')
+      c.start_units --;
+      setTimeout(function(){
+        update_game_state();
+        $('#loading').remove();
+      }, 3000)
+    };
+  }
+  $(document).ready(function(){
+    update_game_state();
+    init_deploy();
+
+    //visuals
+      //build_game();
+
+  })
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
